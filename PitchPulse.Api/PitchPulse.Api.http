@@ -1,0 +1,16 @@
+@api = http://localhost:5090
+
+GET {{api}}/api/health
+Accept: application/json
+
+### Lista serii pomiarowych
+GET {{api}}/api/series
+Accept: application/json
+
+### Jedna seria
+GET {{api}}/api/series/1
+Accept: application/json
+
+### Nieistniejąca seria — oczekiwany kod 404
+GET {{api}}/api/series/999
+Accept: application/json
