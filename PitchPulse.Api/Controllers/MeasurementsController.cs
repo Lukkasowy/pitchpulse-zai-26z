@@ -18,7 +18,7 @@ public class MeasurementsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IReadOnlyList<Measurement>> GetAll([FromQuery] string? series, [FromQuery] string? from, [FromQuery] string? to, [FromQuery] string sort = "timestamp", [FromQuery] int limit = 1000)
+    public async Task<ActionResult<IReadOnlyList<Measurement>>> GetAll([FromQuery] string? series, [FromQuery] string? from, [FromQuery] string? to, [FromQuery] string sort = "timestamp", [FromQuery] int limit = 1000, CancellationToken cancellationToken = default)
     {
         if (limit < 1 || limit > 10000)
         {
@@ -57,13 +57,14 @@ public class MeasurementsController : ControllerBase
             return InvalidQuery("Początek przedziału nie może być późniejszy niż jego koniec.");
         }
 
-        return Ok(_measurementStore.GetAll(seriesIds, fromTime, toTime, sort == "-timestamp", limit));
+        var measurements = await _measurementStore.GetAllAsync(seriesIds, fromTime, toTime, sort == "-timestamp", limit, cancellationToken);
+        return Ok(measurements);
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<Measurement> GetById(int id)
+    public async Task<ActionResult<Measurement>> GetById(int id, CancellationToken cancellationToken)
     {
-        var measurement = _measurementStore.GetById(id);
+        var measurement = await _measurementStore.GetByIdAsync(id, cancellationToken);
 
         if (measurement is null)
         {

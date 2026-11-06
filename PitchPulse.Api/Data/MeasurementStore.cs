@@ -1,14 +1,20 @@
+using Microsoft.EntityFrameworkCore;
 using PitchPulse.Api.Models;
 
 namespace PitchPulse.Api.Data;
 
 public class MeasurementStore
 {
-    private readonly List<Measurement> _measurements = new();
+    private readonly PitchPulseDbContext _dbContext;
 
-    public IReadOnlyList<Measurement> GetAll(IReadOnlyCollection<int>? seriesIds, DateTimeOffset? from, DateTimeOffset? to, bool descending, int limit)
+    public MeasurementStore(PitchPulseDbContext dbContext)
     {
-        var query = _measurements.AsEnumerable();
+        _dbContext = dbContext;
+    }
+
+    public async Task<List<Measurement>> GetAllAsync(IReadOnlyCollection<int>? seriesIds, DateTimeOffset? from, DateTimeOffset? to, bool descending, int limit, CancellationToken cancellationToken)
+    {
+        var query = _dbContext.Measurements.AsNoTracking();
 
         if (seriesIds is not null)
         {
@@ -29,11 +35,12 @@ public class MeasurementStore
             ? query.OrderByDescending(measurement => measurement.Timestamp).ThenByDescending(measurement => measurement.Id)
             : query.OrderBy(measurement => measurement.Timestamp).ThenBy(measurement => measurement.Id);
 
-        return query.Take(limit).ToList();
+        return await query.Take(limit).ToListAsync(cancellationToken);
     }
 
-    public Measurement? GetById(int id)
+    public async Task<Measurement?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        return _measurements.FirstOrDefault(measurement => measurement.Id == id);
+        return await _dbContext.Measurements.AsNoTracking()
+            .FirstOrDefaultAsync(measurement => measurement.Id == id, cancellationToken);
     }
 }

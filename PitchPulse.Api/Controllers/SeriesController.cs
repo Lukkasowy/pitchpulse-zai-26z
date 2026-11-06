@@ -16,9 +16,10 @@ public class SeriesController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IReadOnlyList<SeriesResponse>> GetAll()
+    public async Task<ActionResult<IReadOnlyList<SeriesResponse>>> GetAll(CancellationToken cancellationToken)
     {
-        var response = _seriesStore.GetAll()
+        var series = await _seriesStore.GetAllAsync(cancellationToken);
+        var response = series
             .Select(SeriesResponse.FromModel)
             .ToList();
 
@@ -26,9 +27,9 @@ public class SeriesController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<SeriesResponse> GetById(int id)
+    public async Task<ActionResult<SeriesResponse>> GetById(int id, CancellationToken cancellationToken)
     {
-        var series = _seriesStore.GetById(id);
+        var series = await _seriesStore.GetByIdAsync(id, cancellationToken);
 
         if (series is null)
         {
