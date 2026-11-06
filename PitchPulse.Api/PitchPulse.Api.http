@@ -53,3 +53,39 @@ Content-Type: application/json
   "currentPassword": "WPISZ_OBECNE_HASLO",
   "newPassword": "WPISZ_NOWE_HASLO"
 }
+
+### Utworzenie serii — oczekiwane 201 i nagłówek Location
+POST {{api}}/api/series
+Authorization: Bearer WPISZ_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Prędkość — zawodnik nr 7",
+  "minValue": 0,
+  "maxValue": 40,
+  "color": "#1565c0",
+  "icon": "circle",
+  "unit": "km/h",
+  "playerId": 1,
+  "metricType": "Speed"
+}
+
+### Edycja — wstaw ID utworzonej serii; PUT zastępuje wszystkie edytowalne pola
+PUT {{api}}/api/series/WPISZ_ID
+Authorization: Bearer WPISZ_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Prędkość maksymalna — zawodnik nr 7",
+  "minValue": 0,
+  "maxValue": 45,
+  "color": "#2e7d32",
+  "icon": "square",
+  "unit": "km/h",
+  "playerId": 1,
+  "metricType": "Speed"
+}
+
+### Usunięcie utworzonej serii razem z jej pomiarami — oczekiwane 204
+DELETE {{api}}/api/series/WPISZ_ID
+Authorization: Bearer WPISZ_TOKEN

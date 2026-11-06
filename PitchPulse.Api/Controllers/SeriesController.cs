@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PitchPulse.Api.Contracts;
 using PitchPulse.Api.Data;
@@ -40,5 +41,60 @@ public class SeriesController : ControllerBase
         }
 
         return Ok(SeriesResponse.FromModel(series));
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Administrator")]
+    public async Task<ActionResult<SeriesResponse>> Create(SeriesRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _seriesStore.CreateAsync(request, cancellationToken);
+        if (result.Error != SeriesWriteError.None)
+        {
+            return WriteProblem(result.Error);
+        }
+
+        var response = SeriesResponse.FromModel(result.Series!);
+        return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
+    }
+
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Administrator")]
+    public async Task<ActionResult<SeriesResponse>> Update(int id, SeriesRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _seriesStore.UpdateAsync(id, request, cancellationToken);
+        if (result.Error != SeriesWriteError.None)
+        {
+            return WriteProblem(result.Error);
+        }
+
+        return Ok(SeriesResponse.FromModel(result.Series!));
+    }
+
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        var removed = await _seriesStore.DeleteAsync(id, cancellationToken);
+        return removed ? NoContent() : WriteProblem(SeriesWriteError.NotFound);
+    }
+
+    private ObjectResult WriteProblem(SeriesWriteError error)
+    {
+        return error switch
+        {
+            SeriesWriteError.NotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Nie znaleziono serii."),
+            SeriesWriteError.InvalidRange => Problem(
+                statusCode: StatusCodes.Status422UnprocessableEntity,
+                title: "Niepoprawny zakres wartości.",
+                detail: "Podaj skończone liczby. Minimum musi być mniejsze od maksimum."),
+            SeriesWriteError.InvalidPlayer => Problem(
+                statusCode: StatusCodes.Status422UnprocessableEntity,
+                title: "Nie znaleziono zawodnika.",
+                detail: "Wybierz istniejącego zawodnika albo pomiń playerId."),
+            _ => Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "Zakres wyklucza zapisane pomiary.",
+                detail: "Nowy przedział musi obejmować wszystkie wartości zapisane w tej serii.")
+        };
     }
 }
