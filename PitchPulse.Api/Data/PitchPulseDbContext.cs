@@ -12,9 +12,23 @@ public class PitchPulseDbContext : DbContext
     public DbSet<Player> Players => Set<Player>();
     public DbSet<MetricSeries> Series => Set<MetricSeries>();
     public DbSet<Measurement> Measurements => Set<Measurement>();
+    public DbSet<Administrator> Administrators => Set<Administrator>();
+    public DbSet<AdminSession> AdminSessions => Set<AdminSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Administrator>().HasIndex(administrator => administrator.Username).IsUnique();
+
+        modelBuilder.Entity<AdminSession>(entity =>
+        {
+            entity.HasIndex(session => session.TokenHash).IsUnique();
+            entity.HasIndex(session => session.ExpiresAt);
+            entity.HasOne<Administrator>()
+                .WithMany()
+                .HasForeignKey(session => session.AdministratorId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<MetricSeries>(entity =>
         {
             entity.ToTable("Series", table =>

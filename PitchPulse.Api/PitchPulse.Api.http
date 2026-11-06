@@ -30,3 +30,26 @@ Accept: application/json
 ### Nieistniejący pomiar — oczekiwany kod 404
 GET {{api}}/api/measurements/999
 Accept: application/json
+
+### Logowanie — wpisz lokalne dane przed wysłaniem; nie commituj prawdziwego hasła
+POST {{api}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "WPISZ_LOKALNE_HASLO"
+}
+
+### Wylogowanie — wstaw accessToken z odpowiedzi logowania
+POST {{api}}/api/auth/logout
+Authorization: Bearer WPISZ_TOKEN
+
+### Zmiana hasła — unieważnia wszystkie sesje administratora
+PUT {{api}}/api/auth/password
+Authorization: Bearer WPISZ_TOKEN
+Content-Type: application/json
+
+{
+  "currentPassword": "WPISZ_OBECNE_HASLO",
+  "newPassword": "WPISZ_NOWE_HASLO"
+}
