@@ -12,6 +12,7 @@ public class PitchPulseDbContext : DbContext
     public DbSet<Player> Players => Set<Player>();
     public DbSet<MetricSeries> Series => Set<MetricSeries>();
     public DbSet<Measurement> Measurements => Set<Measurement>();
+    public DbSet<Sensor> Sensors => Set<Sensor>();
     public DbSet<Administrator> Administrators => Set<Administrator>();
     public DbSet<AdminSession> AdminSessions => Set<AdminSession>();
 
@@ -42,12 +43,26 @@ public class PitchPulseDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
+        modelBuilder.Entity<Sensor>(entity =>
+        {
+            entity.HasIndex(sensor => sensor.ApiKeyHash).IsUnique();
+            entity.HasOne<MetricSeries>()
+                .WithMany()
+                .HasForeignKey(sensor => sensor.SeriesId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<Measurement>(entity =>
         {
             entity.HasOne<MetricSeries>()
                 .WithMany()
                 .HasForeignKey(measurement => measurement.SeriesId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<Sensor>()
+                .WithMany()
+                .HasForeignKey(measurement => measurement.SensorId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasIndex(measurement => measurement.Timestamp);
             entity.HasIndex(measurement => new { measurement.SeriesId, measurement.Timestamp });

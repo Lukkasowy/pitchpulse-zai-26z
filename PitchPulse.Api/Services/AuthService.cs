@@ -43,11 +43,11 @@ public class AuthService
             .Where(session => session.AdministratorId == administrator.Id && session.ExpiresAt <= now)
             .ExecuteDeleteAsync(cancellationToken);
 
-        var token = SessionTokens.Create();
+        var token = OpaqueTokens.Create();
         _dbContext.AdminSessions.Add(new AdminSession
         {
             AdministratorId = administrator.Id,
-            TokenHash = SessionTokens.Hash(token),
+            TokenHash = OpaqueTokens.Hash(token),
             CreatedAt = now,
             ExpiresAt = now.AddSeconds(SessionLifetimeSeconds)
         });

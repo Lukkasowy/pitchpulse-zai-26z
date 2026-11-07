@@ -40,7 +40,7 @@ public class AdminAuthenticationHandler : AuthenticationHandler<AuthenticationSc
             return AuthenticateResult.Fail("Niepoprawny token.");
         }
 
-        var tokenHash = SessionTokens.Hash(token);
+        var tokenHash = OpaqueTokens.Hash(token);
         var now = _timeProvider.GetUtcNow();
         var session = await _dbContext.AdminSessions.AsNoTracking()
             .SingleOrDefaultAsync(session => session.TokenHash == tokenHash && session.ExpiresAt > now, Context.RequestAborted);

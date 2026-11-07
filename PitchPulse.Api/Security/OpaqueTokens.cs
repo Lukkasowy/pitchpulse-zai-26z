@@ -3,7 +3,7 @@ using System.Text;
 
 namespace PitchPulse.Api.Security;
 
-public static class SessionTokens
+public static class OpaqueTokens
 {
     public static string Create()
     {

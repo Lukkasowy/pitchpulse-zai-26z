@@ -104,6 +104,8 @@ namespace PitchPulse.Api.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("SensorId");
+
                     b.HasIndex("Timestamp");
 
                     b.HasIndex("SeriesId", "Timestamp");
@@ -245,6 +247,40 @@ namespace PitchPulse.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("PitchPulse.Api.Models.Sensor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApiKeyHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiKeyHash")
+                        .IsUnique();
+
+                    b.HasIndex("SeriesId");
+
+                    b.ToTable("Sensors");
+                });
+
             modelBuilder.Entity("PitchPulse.Api.Models.AdminSession", b =>
                 {
                     b.HasOne("PitchPulse.Api.Models.Administrator", null)
@@ -256,6 +292,11 @@ namespace PitchPulse.Api.Data.Migrations
 
             modelBuilder.Entity("PitchPulse.Api.Models.Measurement", b =>
                 {
+                    b.HasOne("PitchPulse.Api.Models.Sensor", null)
+                        .WithMany()
+                        .HasForeignKey("SensorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("PitchPulse.Api.Models.MetricSeries", null)
                         .WithMany()
                         .HasForeignKey("SeriesId")
@@ -271,6 +312,15 @@ namespace PitchPulse.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("PitchPulse.Api.Models.Sensor", b =>
+                {
+                    b.HasOne("PitchPulse.Api.Models.MetricSeries", null)
+                        .WithMany()
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

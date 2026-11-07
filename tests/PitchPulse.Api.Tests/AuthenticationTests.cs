@@ -25,7 +25,7 @@ public class AuthenticationTests : ApiTestBase
         await using var db = OpenDatabase();
         var session = await db.AdminSessions.SingleAsync(TestCancellation);
         Assert.NotEqual(login.AccessToken, session.TokenHash);
-        Assert.Equal(SessionTokens.Hash(login.AccessToken), session.TokenHash);
+        Assert.Equal(OpaqueTokens.Hash(login.AccessToken), session.TokenHash);
         Assert.Equal(TimeSpan.FromHours(1), session.ExpiresAt - session.CreatedAt);
         var administrator = await db.Administrators.SingleAsync(TestCancellation);
         Assert.NotEqual(Password, administrator.PasswordHash);
@@ -109,7 +109,7 @@ public class AuthenticationTests : ApiTestBase
         var nextLogin = await LoginAsync();
         var sessions = await db.AdminSessions.AsNoTracking().ToListAsync(TestCancellation);
         Assert.Single(sessions);
-        Assert.Equal(SessionTokens.Hash(nextLogin.AccessToken), sessions[0].TokenHash);
+        Assert.Equal(OpaqueTokens.Hash(nextLogin.AccessToken), sessions[0].TokenHash);
     }
 
     [Fact]

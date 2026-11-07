@@ -17,6 +17,7 @@ var connectionString = builder.Configuration.GetConnectionString("PitchPulse")
 builder.Services.AddDbContext<PitchPulseDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<SeriesStore>();
 builder.Services.AddScoped<MeasurementStore>();
+builder.Services.AddScoped<SensorStore>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddAuthentication(AdminAuthenticationHandler.SchemeName)

@@ -89,3 +89,25 @@ Content-Type: application/json
 ### Usunięcie utworzonej serii razem z jej pomiarami — oczekiwane 204
 DELETE {{api}}/api/series/WPISZ_ID
 Authorization: Bearer WPISZ_TOKEN
+
+### Rejestracja czujnika — klucz API pojawi się tylko w odpowiedzi 201
+POST {{api}}/api/sensors
+Authorization: Bearer WPISZ_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Pulsometr zawodnika nr 7",
+  "seriesId": 1
+}
+
+### Lista czujników
+GET {{api}}/api/sensors
+Authorization: Bearer WPISZ_TOKEN
+
+### Odczyt czujnika
+GET {{api}}/api/sensors/WPISZ_ID_CZUJNIKA
+Authorization: Bearer WPISZ_TOKEN
+
+### Wyrejestrowanie czujnika — jego pomiary pozostają w serii
+DELETE {{api}}/api/sensors/WPISZ_ID_CZUJNIKA
+Authorization: Bearer WPISZ_TOKEN
