@@ -1,0 +1,7 @@
+**
+!global.json
+!PitchPulse.Api/
+!PitchPulse.Api/**
+PitchPulse.Api/bin/
+PitchPulse.Api/obj/
+PitchPulse.Api/*.user
