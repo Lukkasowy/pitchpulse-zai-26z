@@ -21,7 +21,8 @@ builder.Services.AddScoped<SensorStore>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddAuthentication(AdminAuthenticationHandler.SchemeName)
-    .AddScheme<AuthenticationSchemeOptions, AdminAuthenticationHandler>(AdminAuthenticationHandler.SchemeName, _ => { });
+    .AddScheme<AuthenticationSchemeOptions, AdminAuthenticationHandler>(AdminAuthenticationHandler.SchemeName, _ => { })
+    .AddScheme<AuthenticationSchemeOptions, SensorAuthenticationHandler>(SensorAuthenticationHandler.SchemeName, _ => { });
 builder.Services.AddAuthorization();
 builder.Services.AddRateLimiter(options =>
 {

@@ -43,4 +43,50 @@ public class MeasurementStore
         return await _dbContext.Measurements.AsNoTracking()
             .FirstOrDefaultAsync(measurement => measurement.Id == id, cancellationToken);
     }
+
+    public async Task<MeasurementWriteResult> CreateAsync(Measurement measurement, int sensorId, CancellationToken cancellationToken)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        // Lock the series before the sensor, matching the order used when deleting a series.
+        var series = await _dbContext.Series
+            .FromSqlInterpolated($"SELECT * FROM \"Series\" WHERE \"Id\" = {measurement.SeriesId} FOR SHARE")
+            .AsNoTracking()
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (series is null)
+        {
+            return MeasurementWriteResult.RevokedSensor;
+        }
+
+        var sensor = await _dbContext.Sensors
+            .FromSqlInterpolated($"SELECT * FROM \"Sensors\" WHERE \"Id\" = {sensorId} AND \"SeriesId\" = {series.Id} FOR KEY SHARE")
+            .AsNoTracking()
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (sensor is null)
+        {
+            return MeasurementWriteResult.RevokedSensor;
+        }
+
+        if (!double.IsFinite(measurement.Value) || measurement.Value < series.MinValue || measurement.Value > series.MaxValue)
+        {
+            return MeasurementWriteResult.InvalidValue;
+        }
+
+        measurement.SensorId = sensor.Id;
+        var subMicrosecondTicks = measurement.Timestamp.Ticks % TimeSpan.TicksPerMicrosecond;
+        measurement.Timestamp = measurement.Timestamp.AddTicks(-subMicrosecondTicks);
+        _dbContext.Measurements.Add(measurement);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return MeasurementWriteResult.Created;
+    }
+}
+
+public enum MeasurementWriteResult
+{
+    Created,
+    RevokedSensor,
+    InvalidValue
 }

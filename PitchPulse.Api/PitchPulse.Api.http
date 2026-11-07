@@ -108,6 +108,15 @@ Authorization: Bearer WPISZ_TOKEN
 GET {{api}}/api/sensors/WPISZ_ID_CZUJNIKA
 Authorization: Bearer WPISZ_TOKEN
 
+### Pomiar zarejestrowanego czujnika — oczekiwane 201
+POST {{api}}/api/measurements
+Content-Type: application/json
+X-API-Key: WPISZ_KLUCZ_CZUJNIKA
+
+{
+  "value": 150
+}
+
 ### Wyrejestrowanie czujnika — jego pomiary pozostają w serii
 DELETE {{api}}/api/sensors/WPISZ_ID_CZUJNIKA
 Authorization: Bearer WPISZ_TOKEN
