@@ -6,14 +6,13 @@ using PitchPulse.Api.Security;
 using PitchPulse.Api.Services;
 
 var createAdmin = args.Contains("--create-admin");
-var builder = WebApplication.CreateBuilder(args.Where(argument => argument != "--create-admin").ToArray());
+var migrateDatabase = args.Contains("--migrate");
+var builder = WebApplication.CreateBuilder(args.Where(argument => argument is not ("--create-admin" or "--migrate")).ToArray());
 
 builder.Services.AddControllers(options => options.ReturnHttpNotAcceptable = true);
 builder.Services.AddProblemDetails();
 
-var connectionString = builder.Configuration.GetConnectionString("PitchPulse")
-    ?? throw new InvalidOperationException("Brak konfiguracji ConnectionStrings:PitchPulse.");
-
+var connectionString = DatabaseConnection.FromConfiguration(builder.Configuration);
 builder.Services.AddDbContext<PitchPulseDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddScoped<SeriesStore>();
 builder.Services.AddScoped<MeasurementStore>();
@@ -39,10 +38,20 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-if (createAdmin)
+if (migrateDatabase || createAdmin)
 {
     await using var scope = app.Services.CreateAsyncScope();
-    await AdministratorSetup.CreateAsync(scope.ServiceProvider.GetRequiredService<PitchPulseDbContext>(), app.Configuration);
+    var dbContext = scope.ServiceProvider.GetRequiredService<PitchPulseDbContext>();
+    if (migrateDatabase)
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+
+    if (createAdmin)
+    {
+        await AdministratorSetup.CreateAsync(dbContext, app.Configuration);
+    }
+
     return;
 }
 

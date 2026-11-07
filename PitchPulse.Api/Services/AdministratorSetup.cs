@@ -10,18 +10,21 @@ public static class AdministratorSetup
     public static async Task CreateAsync(PitchPulseDbContext dbContext, IConfiguration configuration)
     {
         var username = configuration["Admin:Username"];
-        var password = configuration["Admin:Password"];
-
-        if (string.IsNullOrWhiteSpace(username) || username.Length > 100 ||
-            string.IsNullOrWhiteSpace(password) || password.Length < 8 || Encoding.UTF8.GetByteCount(password) > 72)
+        if (string.IsNullOrWhiteSpace(username) || username.Length > 100)
         {
-            throw new InvalidOperationException("Ustaw Admin:Username oraz Admin:Password (minimum 8 znaków, maksimum 72 bajty UTF-8).");
+            throw new InvalidOperationException("Ustaw Admin:Username (maksimum 100 znaków).");
         }
 
         if (await dbContext.Administrators.AnyAsync(administrator => administrator.Username == username))
         {
             Console.WriteLine("Administrator już istnieje. Jego hasło nie zostało zmienione.");
             return;
+        }
+
+        var password = configuration["Admin:Password"];
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8 || Encoding.UTF8.GetByteCount(password) > 72)
+        {
+            throw new InvalidOperationException("Ustaw Admin:Password (minimum 8 znaków, maksimum 72 bajty UTF-8).");
         }
 
         dbContext.Administrators.Add(new Administrator
